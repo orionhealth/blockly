@@ -34,7 +34,7 @@ goog.require('Blockly.FieldCheckbox');
 goog.require('Blockly.FieldColour');
 // Date picker commented out since it increases footprint by 60%.
 // Add it only if you need it.
-//goog.require('Blockly.FieldDate');
+goog.require('Blockly.FieldDate');
 goog.require('Blockly.FieldDropdown');
 goog.require('Blockly.FieldImage');
 goog.require('Blockly.FieldTextInput');
