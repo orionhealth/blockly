@@ -439,7 +439,7 @@ Blockly.Blocks['procedures_callnoreturn'] = {
     this.setNextStatement(true);
     // Tooltip is set in domToMutation.
     this.arguments_ = [];
-    this.quarkConnections_ = null;
+    this.quarkConnections_ = {};
     this.quarkArguments_ = null;
   },
   /**
@@ -526,13 +526,12 @@ Blockly.Blocks['procedures_callnoreturn'] = {
     }
     // Rebuild the block's arguments.
     this.arguments_ = [].concat(paramNames);
+    this.renderArgs_();
     this.quarkArguments_ = paramIds;
-    for (var i = 0; i < this.arguments_.length; i++) {
-      var input = this.appendValueInput('ARG' + i)
-          .setAlign(Blockly.ALIGN_RIGHT)
-          .appendField(this.arguments_[i]);
-      if (this.quarkArguments_) {
-        // Reconnect any child blocks.
+    // Reconnect any child blocks.
+    if (this.quarkArguments_) {
+      for (var i = 0; i < this.arguments_.length; i++) {
+        var input = this.getInput('ARG' + i);
         var quarkName = this.quarkArguments_[i];
         if (quarkName in this.quarkConnections_) {
           var connection = this.quarkConnections_[quarkName];
@@ -545,6 +544,23 @@ Blockly.Blocks['procedures_callnoreturn'] = {
           }
         }
       }
+    }
+    // Restore rendering and show the changes.
+    this.rendered = savedRendered;
+    if (this.rendered) {
+      this.render();
+    }
+  },
+  /**
+   * Render the arguments.
+   * @this Blockly.Block
+   * @private
+   */
+  renderArgs_: function() {
+    for (var i = 0; i < this.arguments_.length; i++) {
+      var input = this.appendValueInput('ARG' + i)
+          .setAlign(Blockly.ALIGN_RIGHT)
+          .appendField(this.arguments_[i]);
       input.init();
     }
     // Add 'with:' if there are parameters.
@@ -560,11 +576,6 @@ Blockly.Blocks['procedures_callnoreturn'] = {
           input.removeField('WITH');
         }
       }
-    }
-    // Restore rendering and show the changes.
-    this.rendered = savedRendered;
-    if (this.rendered) {
-      this.render();
     }
   },
   /**
@@ -656,13 +667,14 @@ Blockly.Blocks['procedures_callreturn'] = {
     this.setOutput(true);
     // Tooltip is set in domToMutation.
     this.arguments_ = [];
-    this.quarkConnections_ = null;
+    this.quarkConnections_ = {};
     this.quarkArguments_ = null;
   },
   getProcedureCall: Blockly.Blocks['procedures_callnoreturn'].getProcedureCall,
   renameProcedure: Blockly.Blocks['procedures_callnoreturn'].renameProcedure,
   setProcedureParameters:
       Blockly.Blocks['procedures_callnoreturn'].setProcedureParameters,
+  renderArgs_: Blockly.Blocks['procedures_callnoreturn'].renderArgs_,
   mutationToDom: Blockly.Blocks['procedures_callnoreturn'].mutationToDom,
   domToMutation: Blockly.Blocks['procedures_callnoreturn'].domToMutation,
   renameVar: Blockly.Blocks['procedures_callnoreturn'].renameVar,

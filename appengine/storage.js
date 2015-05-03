@@ -72,7 +72,6 @@ BlocklyStorage.link = function() {
  * @param {string} key Key to XML, obtained from href.
  */
 BlocklyStorage.retrieveXml = function(key) {
-  var xml = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace());
   BlocklyStorage.makeRequest_('/storage', 'key', key);
 };
 
@@ -141,17 +140,18 @@ BlocklyStorage.handleRequest_ = function() {
  * @private
  */
 BlocklyStorage.monitorChanges_ = function() {
-  var startXmlDom = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace());
+  var workspace = Blockly.getMainWorkspace();
+  var startXmlDom = Blockly.Xml.workspaceToDom(workspace);
   var startXmlText = Blockly.Xml.domToText(startXmlDom);
   function change() {
-    var xmlDom = Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace());
+    var xmlDom = Blockly.Xml.workspaceToDom(workspace);
     var xmlText = Blockly.Xml.domToText(xmlDom);
     if (startXmlText != xmlText) {
       window.location.hash = '';
       Blockly.removeChangeListener(bindData);
     }
   }
-  var bindData = Blockly.addChangeListener(change);
+  var bindData = workspace.addChangeListener(change);
 };
 
 /**
