@@ -34,6 +34,7 @@ Blockly.Blocks['factory_base'] = {
         .setCheck('Input')
         .appendField('inputs');
     var dropdown = new Blockly.FieldDropdown([
+        ['automatic inputs', 'AUTO'],
         ['external inputs', 'EXT'],
         ['inline inputs', 'INT']]);
     this.appendDummyInput()
@@ -610,7 +611,7 @@ Blockly.Blocks['type_group_item'] = {
 
 Blockly.Blocks['type_null'] = {
   // Null type.
-  valueType: 'null',
+  valueType: null,
   init: function() {
     this.setColour(230);
     this.appendDummyInput()
