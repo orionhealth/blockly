@@ -318,7 +318,7 @@ Blockly.Blocks['logic_compare'] = {
     var blockA = this.getInputTargetBlock('A');
     var blockB = this.getInputTargetBlock('B');
     if (Blockly.ejectMismatch) {
-      // Kick blocks that existed prior to this change if they don't match.
+      // Disconnect blocks that existed prior to this change if they don't match.
       if (blockA && blockB &&
           !blockA.outputConnection.checkType_(blockB.outputConnection)) {
         // Mismatch between two inputs.  Disconnect previous and bump it away.
@@ -418,8 +418,8 @@ Blockly.Blocks['logic_negate'] = {
    */
   init: function() {
     this.jsonInit({
-      "message": Blockly.Msg.LOGIC_NEGATE_TITLE,
-      "args": [
+      "message0": Blockly.Msg.LOGIC_NEGATE_TITLE,
+      "args0": [
         {
           "type": "input_value",
           "name": "BOOL",
@@ -499,7 +499,7 @@ Blockly.Blocks['logic_ternary'] = {
     var blockA = this.getInputTargetBlock('THEN');
     var blockB = this.getInputTargetBlock('ELSE');
     var parentConnection = this.outputConnection.targetConnection;
-    // Kick blocks that existed prior to this change if they don't match.
+    // Disconnect blocks that existed prior to this change if they don't match.
     if ((blockA || blockB) && parentConnection) {
       for (var i = 0; i < 2; i++) {
         var block = (i == 1) ? blockA : blockB;

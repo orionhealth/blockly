@@ -110,15 +110,16 @@ Blockly.WorkspaceSvg.prototype.scrollbar = null;
  */
 Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
   /*
-  <g>
+  <g class="blocklyWorkspace">
     <rect class="blocklyMainBackground" height="100%" width="100%"></rect>
     [Trashcan and/or flyout may go here]
-    <g></g>  // Block canvas
-    <g></g>  // Bubble canvas
+    <g class="blocklyBlockCanvas"></g>
+    <g class="blocklyBubbleCanvas"></g>
     [Scrollbars may go here]
   </g>
   */
-  this.svgGroup_ = Blockly.createSvgElement('g', {}, null);
+  this.svgGroup_ = Blockly.createSvgElement('g',
+    {'class': 'blocklyWorkspace'}, null);
   if (opt_backgroundClass) {
     this.svgBackground_ = Blockly.createSvgElement('rect',
         {'height': '100%', 'width': '100%',
@@ -128,13 +129,18 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
           'url(#' + this.options.gridPattern.id + ')';
     }
   }
-  this.svgBlockCanvas_ = Blockly.createSvgElement('g', {}, this.svgGroup_);
-  this.svgBubbleCanvas_ = Blockly.createSvgElement('g', {}, this.svgGroup_);
+  this.svgBlockCanvas_ = Blockly.createSvgElement('g',
+      {'class': 'blocklyBlockCanvas'}, this.svgGroup_);
+  this.svgBubbleCanvas_ = Blockly.createSvgElement('g',
+      {'class': 'blocklyBubbleCanvas'}, this.svgGroup_);
   if (this.options.hasTrashcan) {
     this.addTrashcan_();
   }
 
   Blockly.bindEvent_(this.svgGroup_, 'mousedown', this, this.onMouseDown_);
+  var thisWorkspace = this;
+  Blockly.bindEvent_(this.svgGroup_, 'touchstart', null,
+                      function(e) {Blockly.longStart_(e, thisWorkspace);});
 
   // Determine if there needs to be a category tree, or a simple list of
   // blocks.  This cannot be changed later, since the UI is very different.
@@ -143,8 +149,6 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
   } else if (this.options.languageTree) {
     this.addFlyout_();
   }
-
-  this.fireChangeEvent();
   return this.svgGroup_;
 };
 
@@ -396,22 +400,38 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
     if (this.RTL) {
       blockX = -blockX;
     }
-    // Offset block until not clobbering another block.
+    // Offset block until not clobbering another block and not in connection
+    // distance with neighbouring blocks.
     do {
       var collide = false;
       var allBlocks = this.getAllBlocks();
-      for (var x = 0, otherBlock; otherBlock = allBlocks[x]; x++) {
+      for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
         var otherXY = otherBlock.getRelativeToSurfaceXY();
         if (Math.abs(blockX - otherXY.x) <= 1 &&
             Math.abs(blockY - otherXY.y) <= 1) {
-          if (this.RTL) {
-            blockX -= Blockly.SNAP_RADIUS;
-          } else {
-            blockX += Blockly.SNAP_RADIUS;
-          }
-          blockY += Blockly.SNAP_RADIUS * 2;
           collide = true;
+          break;
         }
+      }
+      if (!collide) {
+        // Check for blocks in snap range to any of its connections.
+        var connections = block.getConnections_(false);
+        for (var i = 0, connection; connection = connections[i]; i++) {
+          var neighbour =
+              connection.closest(Blockly.SNAP_RADIUS, blockX, blockY);
+          if (neighbour.connection) {
+            collide = true;
+            break;
+          }
+        }
+      }
+      if (collide) {
+        if (this.RTL) {
+          blockX -= Blockly.SNAP_RADIUS;
+        } else {
+          blockX += Blockly.SNAP_RADIUS;
+        }
+        blockY += Blockly.SNAP_RADIUS * 2;
       }
     } while (collide);
     block.moveBy(blockX, blockY);
@@ -631,7 +651,7 @@ Blockly.WorkspaceSvg.prototype.preloadAudio_ = function() {
  * Play an audio file at specified value.  If volume is not specified,
  * use full volume (1).
  * @param {string} name Name of sound.
- * @param {?number} opt_volume Volume of sound (0-1).
+ * @param {number=} opt_volume Volume of sound (0-1).
  */
 Blockly.WorkspaceSvg.prototype.playAudio = function(name, opt_volume) {
   var sound = this.SOUNDS_[name];
@@ -652,6 +672,37 @@ Blockly.WorkspaceSvg.prototype.playAudio = function(name, opt_volume) {
   } else if (this.options.parentWorkspace) {
     // Maybe a workspace on a lower level knows about this sound.
     this.options.parentWorkspace.playAudio(name, opt_volume);
+  }
+};
+
+/**
+ * Modify the block tree on the existing toolbox.
+ * @param {Node|string} tree DOM tree of blocks, or text representation of same.
+ */
+Blockly.WorkspaceSvg.prototype.updateToolbox = function(tree) {
+  tree = Blockly.parseToolboxTree_(tree);
+  if (!tree) {
+    if (this.options.languageTree) {
+      throw 'Can\'t nullify an existing toolbox.';
+    }
+    // No change (null to null).
+    return;
+  }
+  if (!this.options.languageTree) {
+    throw 'Existing toolbox is null.  Can\'t create new toolbox.';
+  }
+  if (this.options.hasCategories) {
+    if (!this.toolbox_) {
+      throw 'Existing toolbox has no categories.  Can\'t change mode.';
+    }
+    this.options.languageTree = tree;
+    this.toolbox_.populate_(tree);
+  } else {
+    if (!this.flyout_) {
+      throw 'Existing toolbox has categories.  Can\'t change mode.';
+    }
+    this.options.languageTree = tree;
+    this.flyout_.show(tree.childNodes);
   }
 };
 
