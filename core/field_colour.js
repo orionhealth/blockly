@@ -68,15 +68,6 @@ Blockly.FieldColour.prototype.init = function(block) {
 };
 
 /**
- * Clone this FieldColour.
- * @return {!Blockly.FieldColour} The result of calling the constructor again
- *   with the current values of the arguments used during construction.
- */
-Blockly.FieldColour.prototype.clone = function() {
-  return new Blockly.FieldColour(this.getValue(), this.changeHandler_);
-};
-
-/**
  * Mouse cursor style when over the hotspot that initiates the editor.
  */
 Blockly.FieldColour.prototype.CURSOR = 'default';
@@ -179,7 +170,7 @@ Blockly.FieldColour.prototype.showEditor_ = function() {
   var windowSize = goog.dom.getViewportSize();
   var scrollOffset = goog.style.getViewportPageOffset(document);
   var xy = this.getAbsoluteXY_();
-  var borderBBox = this.borderRect_.getBBox();
+  var borderBBox = this.getScaledBBox_();
   var div = Blockly.WidgetDiv.DIV;
   picker.render(div);
   picker.setSelectedColor(this.getValue());

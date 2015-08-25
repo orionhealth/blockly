@@ -66,7 +66,7 @@ Blockly.Xml.blockToDom_ = function(block) {
   if (block.mutationToDom) {
     // Custom data for an advanced block.
     var mutation = block.mutationToDom();
-    if (mutation) {
+    if (mutation && (mutation.hasChildNodes() || mutation.hasAttributes())) {
       element.appendChild(mutation);
     }
   }
@@ -438,6 +438,10 @@ Blockly.Xml.domToBlockHeadless_ =
   var collapsed = xmlBlock.getAttribute('collapsed');
   if (collapsed) {
     block.setCollapsed(collapsed == 'true');
+  }
+  // Give the block a chance to clean up any initial inputs.
+  if (block.validate) {
+    block.validate.call(block);
   }
   return block;
 };

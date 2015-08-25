@@ -147,6 +147,7 @@ Blockly.Toolbox.prototype.dispose = function() {
   this.flyout_.dispose();
   this.tree_.dispose();
   goog.dom.removeNode(this.HtmlDiv);
+  this.workspace_ = null;
 };
 
 /**
@@ -407,7 +408,7 @@ Blockly.Toolbox.TreeNode.prototype.onDoubleClick_ = function(e) {
 /**
  * A blank separator node in the tree.
  * @constructor
- * @extends {Blockly.Toolbox.prototype.TreeNode}
+ * @extends {Blockly.Toolbox.TreeNode}
  */
 Blockly.Toolbox.TreeSeparator = function() {
   Blockly.Toolbox.TreeNode.call(this, null, '',

@@ -28,6 +28,7 @@ goog.provide('Blockly.FieldImage');
 
 goog.require('Blockly.Field');
 goog.require('goog.dom');
+goog.require('goog.math.Size');
 goog.require('goog.userAgent');
 
 
@@ -45,21 +46,11 @@ Blockly.FieldImage = function(src, width, height, opt_alt) {
   // Ensure height and width are numbers.  Strings are bad at math.
   this.height_ = Number(height);
   this.width_ = Number(width);
-  this.size_ = {height: this.height_ + 10, width: this.width_};
+  this.size_ = new goog.math.Size(this.height_, this.width_);
   this.text_ = opt_alt || '';
   this.setValue(src);
 };
 goog.inherits(Blockly.FieldImage, Blockly.Field);
-
-/**
- * Clone this FieldImage.
- * @return {!Blockly.FieldImage} The result of calling the constructor again
- *   with the current values of the arguments used during construction.
- */
-Blockly.FieldImage.prototype.clone = function() {
-  return new Blockly.FieldImage(this.getSrc(), this.width_, this.height_,
-      this.getText());
-};
 
 /**
  * Rectangular mask used by Firefox.

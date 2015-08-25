@@ -46,6 +46,11 @@ Blockly.Field = function(text) {
 };
 
 /**
+ * Maximum length of text to display before adding an ellipsis.
+ */
+Blockly.Field.prototype.maxDisplayLength = 50;
+
+/**
  * Block this field is attached to.  Starts as null, then in set in init.
  * @private
  */
@@ -62,17 +67,6 @@ Blockly.Field.prototype.visible_ = true;
  * @private
  */
 Blockly.Field.prototype.changeHandler_ = null;
-
-/**
- * Clone this Field.  This must be implemented by all classes derived from
- * Field.  Since this class should not be instantiated, calling this method
- * throws an exception.
- * @throws {goog.assert.AssertionError}
- */
-Blockly.Field.prototype.clone = function() {
-  goog.asserts.fail('There should never be an instance of Field, ' +
-      'only its derived classes.');
-};
 
 /**
  * Non-breaking space.
@@ -104,7 +98,7 @@ Blockly.Field.prototype.init = function(block) {
        'ry': 4,
        'x': -Blockly.BlockSvg.SEP_SPACE_X / 2,
        'y': -12,
-       'height': 16}, this.fieldGroup_);
+       'height': 16}, this.fieldGroup_, this.sourceBlock_.workspace);
   this.textElement_ = Blockly.createSvgElement('text',
       {'class': 'blocklyText'}, this.fieldGroup_);
 
@@ -231,6 +225,18 @@ Blockly.Field.prototype.getSize = function() {
 };
 
 /**
+ * Returns the height and width of the field,
+ * accounting for the workspace scaling.
+ * @return {!goog.math.Size} Height and width.
+ */
+Blockly.Field.prototype.getScaledBBox_ = function() {
+  var bBox = this.borderRect_.getBBox();
+  // Create new object, as getBBox can return an uneditable SVGRect in IE.
+  return new goog.math.Size(bBox.width * this.sourceBlock_.workspace.scale,
+                            bBox.height * this.sourceBlock_.workspace.scale);
+};
+
+/**
  * Get the text from this field.
  * @return {string} Current text.
  */
@@ -272,6 +278,10 @@ Blockly.Field.prototype.updateTextNode_ = function() {
     return;
   }
   var text = this.text_;
+  if (text.length > this.maxDisplayLength) {
+    // Truncate displayed string and add an ellipsis ('...').
+    text = text.substring(0, this.maxDisplayLength - 2) + '\u2026';
+  }
   // Empty the text element.
   goog.dom.removeChildren(/** @type {!Element} */ (this.textElement_));
   // Replace whitespace with non-breaking spaces so the text doesn't collapse.
